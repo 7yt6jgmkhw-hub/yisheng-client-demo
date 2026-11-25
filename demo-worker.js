@@ -71,3 +71,7 @@ self.addEventListener("fetch",e=>{
  if(route.startsWith("api/")||route.startsWith("files/"))
   e.respondWith(handle(e.request,route).catch(()=>json("无法保存或读取浏览器演示数据，请检查浏览器存储空间。",500)));
 });
+
+self.addEventListener("message",event=>{
+ if(event.data==="claim-demo-page")event.waitUntil(self.clients.claim());
+});

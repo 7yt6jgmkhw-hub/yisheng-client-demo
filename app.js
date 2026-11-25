@@ -302,9 +302,13 @@ function settings(){const d=structuredClone(data);modal("站点设置",field("�
 async function start(){
  if(!("serviceWorker" in navigator))throw Error("请在支持站点存储的浏览器中打开演示。");
  await navigator.serviceWorker.register("./demo-worker.js");
- await navigator.serviceWorker.ready;
+ const ready=await navigator.serviceWorker.ready;
  if(!navigator.serviceWorker.controller)
-  await new Promise(resolve=>navigator.serviceWorker.addEventListener("controllerchange",resolve,{once:true}));
+  await new Promise((resolve,reject)=>{
+   const timeout=setTimeout(()=>reject(Error("演示环境未就绪，请重新打开本页。")),10000);
+   navigator.serviceWorker.addEventListener("controllerchange",()=>{clearTimeout(timeout);resolve()},{once:true});
+   ready.active.postMessage("claim-demo-page");
+  });
 
  if(!inManagement()){await load();return}
  try{
