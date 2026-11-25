@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>招标代理服务费计算器</title>
+<style>
+* {box-sizing:border-box}
+body {margin:0;font:16px/1.55 Inter,"Microsoft YaHei",sans-serif;color:#193849;background:white}
+main {max-width:620px;margin:auto;padding:24px}
+h1 {font-size:24px;margin:0 0 18px}
+label {display:block;margin-bottom:8px}
+.row {display:flex;gap:10px}
+input,button {font:inherit;border-radius:5px;padding:10px 14px}
+input {border:1px solid #a5b9c0;min-width:0;flex:1}
+button {background:#165775;border:0;color:white;cursor:pointer}
+dl {margin:18px 0 0}
+dl div {display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #dde5e8}
+dd {font-variant-numeric:tabular-nums;margin:0}
+</style>
+<main>
+<h1>招标代理服务费计算器</h1>
+<form>
+  <label for="amount">中标金额（万元）</label>
+  <div class="row"><input id="amount" type="number" step="any" min="0" required inputmode="decimal" placeholder="请输入金额"><button>计算</button></div>
+</form>
+<dl aria-live="polite">
+  <div><dt>货物类</dt><dd>— 万元</dd></div>
+  <div><dt>服务类</dt><dd>— 万元</dd></div>
+  <div><dt>工程类</dt><dd>— 万元</dd></div>
+</dl>
+</main>
+<script>
+const brackets = [
+  [100, 150, 150, 100], [500, 110, 80, 70], [1000, 80, 45, 55],
+  [5000, 50, 25, 35], [10000, 25, 10, 20], [50000, 5, 5, 5],
+  [100000, 3.5, 3.5, 3.5], [500000, .8, .8, .8],
+  [1000000, .6, .6, .6], [Infinity, .4, .4, .4]
+];
+function serviceFees(amount) {
+  const fees = [0, 0, 0];
+  let floor = 0;
+  for (const [limit, ...basisPoints] of brackets) {
+    const portion = Math.min(amount, limit) - floor;
+    basisPoints.forEach((rate, index) => fees[index] += portion * (rate / 10000));
+    if (amount <= limit) break;
+    floor = limit;
+  }
+  return fees;
+}
+const amountField = document.querySelector('#amount');
+const results = document.querySelectorAll('dd');
+amountField.addEventListener('input', () => {
+  amountField.setCustomValidity('');
+  results.forEach(result => result.textContent = '— 万元');
+});
+document.querySelector('form').addEventListener('submit', event => {
+  event.preventDefault();
+  const amount = amountField.valueAsNumber;
+  if (!Number.isFinite(amount) || amount <= 0) {
+    amountField.setCustomValidity('请输入大于零的金额');
+    amountField.reportValidity();
+    return;
+  }
+  serviceFees(amount).forEach((fee, index) => {
+    results[index].textContent = fee.toFixed(2) + ' 万元';
+  });
+});
+</script>
+</html>
